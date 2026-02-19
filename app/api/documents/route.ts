@@ -3,9 +3,8 @@ import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-const pdf = require("pdf-parse");
-
 export async function POST(req: Request) {
+    const pdf = require("pdf-parse");
     const session = await auth();
     if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
 
