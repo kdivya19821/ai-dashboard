@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { YoutubeTranscript } from "youtube-transcript";
 import OpenAI from "openai";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
     const groq = new OpenAI({
         apiKey: process.env.GROQ_API_KEY,

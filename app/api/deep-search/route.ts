@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import OpenAI from "openai";
 
+export const dynamic = "force-dynamic";
+
 
 export async function POST(req: Request) {
     const firecrawl = new FirecrawlApp({

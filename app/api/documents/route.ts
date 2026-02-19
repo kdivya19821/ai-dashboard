@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 const pdf = require("pdf-parse");
 
 export async function POST(req: Request) {
