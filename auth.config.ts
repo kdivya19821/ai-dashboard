@@ -2,6 +2,8 @@ import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
     providers: [], // Providers are added in auth.ts
+    secret: process.env.AUTH_SECRET || "668af82bd4166297395722fb",
+    trustHost: true,
     pages: {
         signIn: "/login",
     },
