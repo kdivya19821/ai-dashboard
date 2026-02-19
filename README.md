@@ -68,4 +68,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-Built with ❤️ by [Divyadivyak](https://github.com/Divyadivyak)
+Built with ❤️ by [kdivya19821](https://github.com/kdivya19821)
