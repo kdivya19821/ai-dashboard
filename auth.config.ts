@@ -1,8 +1,15 @@
 import type { NextAuthConfig } from "next-auth";
 
+if (!process.env.AUTH_SECRET) {
+    process.env.AUTH_SECRET = "668af82bd4166297395722fb";
+}
+if (!process.env.AUTH_TRUST_HOST) {
+    process.env.AUTH_TRUST_HOST = "true";
+}
+
 export const authConfig = {
     providers: [], // Providers are added in auth.ts
-    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "668af82bd4166297395722fb",
+    secret: process.env.AUTH_SECRET,
     trustHost: true,
     session: { strategy: "jwt" },
     pages: {
