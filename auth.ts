@@ -1,6 +1,3 @@
-process.env.AUTH_SECRET = "668af82bd4166297395722fb668af82b";
-process.env.AUTH_TRUST_HOST = "true";
-
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
@@ -9,10 +6,9 @@ import prisma from "@/lib/prismadb";
 import { authConfig } from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    ...authConfig,
     adapter: PrismaAdapter(prisma),
-    secret: "668af82bd4166297395722fb668af82b",
-    trustHost: true,
+    session: { strategy: "jwt" },
+    ...authConfig,
     providers: [
         Credentials({
             async authorize(credentials) {
