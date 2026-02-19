@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(USER)
+  status    Status   @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspaces Workspace[]
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  documents Document[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Document {
+  id          String    @id @default(cuid())
+  name        String
+  content     String?
+  url         String?
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

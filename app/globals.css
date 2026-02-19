@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(240 10% 3.9%);
+  --color-foreground: hsl(0 0% 98%);
+  --color-card: hsl(240 10% 6%);
+  --color-card-foreground: hsl(0 0% 98%);
+  --color-popover: hsl(240 10% 6%);
+  --color-popover-foreground: hsl(0 0% 98%);
+  --color-primary: hsl(263.4 70% 50.4%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(240 3.7% 15.1%);
+  --color-secondary-foreground: hsl(0 0% 98%);
+  --color-muted: hsl(240 3.7% 15.1%);
+  --color-muted-foreground: hsl(240 5% 64.9%);
+  --color-accent: hsl(240 3.7% 15.1%);
+  --color-accent-foreground: hsl(0 0% 98%);
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(240 3.7% 15.1%);
+  --color-input: hsl(240 3.7% 15.1%);
+  --color-ring: hsl(263.4 70% 50.4%);
+  --radius-lg: 1rem;
+  --radius-md: calc(var(--radius-lg) - 2px);
+  --radius-sm: calc(var(--radius-lg) - 4px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    @apply tracking-tight;
+  }
+}
+
+@utility glass {
+  @apply bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl;
+}
+
+@utility gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 font-extrabold;
+}
+
+@utility premium-card {
+  @apply glass rounded-2xl p-6 transition-all duration-300;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.premium-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 40px rgba(79, 70, 229, 0.15);
+}
+
+@utility shimmer {
+  @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
