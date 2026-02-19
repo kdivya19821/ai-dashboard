@@ -22,11 +22,12 @@ export default function LoginPage() {
                 redirect: false,
                 email,
                 password,
+                callbackUrl: "/dashboard",
             });
 
             if (res?.error) {
-                setError(res.error);
-            } else {
+                setError("Invalid email or password");
+            } else if (res?.ok) {
                 router.push("/dashboard");
                 router.refresh();
             }
