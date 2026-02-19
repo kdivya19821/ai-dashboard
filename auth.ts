@@ -1,3 +1,6 @@
+process.env.AUTH_SECRET = "668af82bd4166297395722fb";
+process.env.AUTH_TRUST_HOST = "true";
+
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
