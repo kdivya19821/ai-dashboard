@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Sparkles, Link as LinkIcon, ExternalLink, AlertCircle, LayoutDashboard, FolderKanban, LogOut, Loader2 } from "lucide-react";
+import { Search, Sparkles, Link as LinkIcon, ExternalLink, AlertCircle, LayoutDashboard, FolderKanban, LogOut, Loader2, FileQuestion } from "lucide-react";
 import Link from "next/link";
 
 export default function DeepSearch() {
@@ -50,6 +50,10 @@ export default function DeepSearch() {
                     <Link href="/dashboard/workspaces" className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-xl transition-all">
                         <FolderKanban size={20} />
                         Workspaces
+                    </Link>
+                    <Link href="/dashboard/document-qa" className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-xl transition-all">
+                        <FileQuestion size={20} />
+                        Document QA
                     </Link>
                     <Link href="/dashboard/deep-search" className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl font-semibold transition-all">
                         <Search size={20} />

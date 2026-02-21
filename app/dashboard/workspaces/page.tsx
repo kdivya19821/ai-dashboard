@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import WorkspaceQA from "@/components/WorkspaceQA";
-import { FolderPlus, FileUp, Files, MessageSquare, ChevronRight, LayoutDashboard, FolderKanban, Search, LogOut } from "lucide-react";
+import { FolderPlus, FileUp, Files, MessageSquare, ChevronRight, LayoutDashboard, FolderKanban, Search, LogOut, FileQuestion } from "lucide-react";
 import Link from "next/link";
 
 export default function WorkspacesPage() {
@@ -71,6 +71,10 @@ export default function WorkspacesPage() {
                     <Link href="/dashboard/workspaces" className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl font-semibold transition-all">
                         <FolderKanban size={20} />
                         Workspaces
+                    </Link>
+                    <Link href="/dashboard/document-qa" className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-xl transition-all">
+                        <FileQuestion size={20} />
+                        Document QA
                     </Link>
                     <Link href="/dashboard/deep-search" className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-xl transition-all">
                         <Search size={20} />
