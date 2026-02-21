@@ -66,8 +66,14 @@ export default function DocumentQA() {
                 body: formData,
             });
 
-            if (!res.ok) throw new Error(await res.text());
-            const data = await res.json();
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok) {
+                throw new Error(data?.error || `Upload failed (${res.status})`);
+            }
+            if (!data?.content) {
+                throw new Error("No content extracted from the document.");
+            }
             setDocumentContent(data.content);
             setDocumentName(data.filename);
         } catch (err: any) {

@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+// Increase body size limit for file uploads (default is 1MB in Next.js)
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
-    const pdf = require("pdf-parse");
     const session = await auth();
     if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
 
@@ -20,15 +22,40 @@ export async function POST(req: Request) {
             return new NextResponse("Only PDF and TXT files are supported", { status: 400 });
         }
 
+        // Check file size (limit to 4MB to stay within Vercel limits)
+        const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+        if (file.size > MAX_FILE_SIZE) {
+            return NextResponse.json(
+                { error: "File too large. Maximum size is 4MB." },
+                { status: 400 }
+            );
+        }
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
-            const data = await pdf(buffer);
-            content = data.text;
+            try {
+                const pdf = require("pdf-parse/node");
+                const data = await pdf(buffer);
+                content = data.text;
+            } catch (pdfError: any) {
+                console.error("PDF parse error:", pdfError);
+                return NextResponse.json(
+                    { error: "Failed to parse PDF. The file may be corrupted or password-protected." },
+                    { status: 422 }
+                );
+            }
         } else {
             content = buffer.toString("utf-8");
+        }
+
+        if (!content || content.trim().length === 0) {
+            return NextResponse.json(
+                { error: "No text content found in the document. It may be an image-based PDF." },
+                { status: 422 }
+            );
         }
 
         // Limit content to 50,000 chars for prompt context
@@ -41,6 +68,9 @@ export async function POST(req: Request) {
         });
     } catch (error: any) {
         console.error("Upload error:", error);
-        return new NextResponse(error.message || "Internal Error", { status: 500 });
+        return NextResponse.json(
+            { error: error.message || "Internal Error" },
+            { status: 500 }
+        );
     }
 }
