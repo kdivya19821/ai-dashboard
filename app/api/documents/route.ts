@@ -28,12 +28,15 @@ export async function POST(req: Request) {
 
             if (file.type === "application/pdf" || name.toLowerCase().endsWith(".pdf")) {
                 try {
-                    // DOMMatrix Polyfill for Node.js
+                    // Global polyfills for Node.js compatibility
                     if (typeof (global as any).DOMMatrix === "undefined") {
                         (global as any).DOMMatrix = class DOMMatrix {
                             a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-                            constructor(arg?: any) { }
+                            constructor() { }
                         };
+                    }
+                    if (typeof (global as any).self === "undefined") {
+                        (global as any).self = global;
                     }
 
                     const pdf = require("pdf-parse");
@@ -43,8 +46,11 @@ export async function POST(req: Request) {
                         return new NextResponse("Invalid PDF format: Missing PDF header.", { status: 422 });
                     }
 
-                    const data = await pdf(buffer);
-                    content = data.text;
+                    const data = await pdf(buffer).catch((e: any) => {
+                        throw new Error(`Extraction failed: ${e.message || e}`);
+                    });
+
+                    content = data?.text || "";
 
                     if (!content || content.trim().length === 0) {
                         return new NextResponse("No text content found in PDF. It might be an image-only document.", { status: 422 });

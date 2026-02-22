@@ -37,18 +37,20 @@ export async function POST(req: Request) {
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
             try {
-                // DOMMatrix Polyfill for Node.js (needed by some pdf-parse builds)
+                // More robust polyfills for pdf-parse/pdf.js in Node environment
                 if (typeof (global as any).DOMMatrix === "undefined") {
                     (global as any).DOMMatrix = class DOMMatrix {
                         a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-                        constructor(arg?: any) {
-                            if (typeof arg === 'string') { /* parse string if needed */ }
-                        }
+                        constructor() { }
                     };
+                }
+                if (typeof (global as any).self === "undefined") {
+                    (global as any).self = global;
                 }
 
                 const pdf = require("pdf-parse");
-                // Check if the first 4 bytes are %PDF- to verify it's a valid PDF
+
+                // Verify it's a valid PDF first
                 const header = buffer.toString("utf-8", 0, 5);
                 if (!header.startsWith("%PDF-")) {
                     return NextResponse.json(
@@ -57,20 +59,22 @@ export async function POST(req: Request) {
                     );
                 }
 
-                const data = await pdf(buffer);
-                content = data.text;
+                const data = await pdf(buffer).catch((e: any) => {
+                    throw new Error(`Library failed: ${e.message || e}`);
+                });
+
+                content = data?.text || "";
 
                 if (!content || content.trim().length === 0) {
                     return NextResponse.json(
-                        { error: "No text found in PDF. This might be an image-based PDF or scanned document which requires OCR." },
+                        { error: "No text found in PDF. This might be an image-based PDF or scanned document." },
                         { status: 422 }
                     );
                 }
             } catch (pdfError: any) {
-                console.error("DEBUG PDF ERROR:", pdfError);
-                const errorMessage = pdfError?.message || "Unknown PDF parsing error";
+                console.error("CRITICAL PDF ERROR:", pdfError);
                 return NextResponse.json(
-                    { error: `PDF Error: ${errorMessage}. The file might be encrypted, password-protected, or use an unsupported version.` },
+                    { error: `PDF Extraction Error: ${pdfError.message || "Unknown error"}. Try converting to TXT or another PDF.` },
                     { status: 422 }
                 );
             }
