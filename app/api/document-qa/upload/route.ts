@@ -37,13 +37,20 @@ export async function POST(req: Request) {
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
             try {
-                const pdf = require("pdf-parse/node");
+                const pdf = require("pdf-parse");
                 const data = await pdf(buffer);
                 content = data.text;
+
+                if (!content || content.trim().length === 0) {
+                    return NextResponse.json(
+                        { error: "No text found in PDF. This might be an image-based PDF or scanned document which requires OCR." },
+                        { status: 422 }
+                    );
+                }
             } catch (pdfError: any) {
                 console.error("PDF parse error:", pdfError);
                 return NextResponse.json(
-                    { error: "Failed to parse PDF. The file may be corrupted or password-protected." },
+                    { error: "Failed to extract text from PDF. The file might be corrupted, encrypted, or password-protected." },
                     { status: 422 }
                 );
             }

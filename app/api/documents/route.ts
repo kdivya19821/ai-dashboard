@@ -27,9 +27,18 @@ export async function POST(req: Request) {
             const buffer = Buffer.from(bytes);
 
             if (file.type === "application/pdf" || name.toLowerCase().endsWith(".pdf")) {
-                const pdf = require("pdf-parse/node");
-                const data = await pdf(buffer);
-                content = data.text;
+                try {
+                    const pdf = require("pdf-parse");
+                    const data = await pdf(buffer);
+                    content = data.text;
+
+                    if (!content || content.trim().length === 0) {
+                        return new NextResponse("No text content found in PDF. It might be an image-only document.", { status: 422 });
+                    }
+                } catch (err) {
+                    console.error("PDF Extraction Error:", err);
+                    return new NextResponse("Failed to extract text from PDF.", { status: 422 });
+                }
             } else {
                 content = buffer.toString();
             }
