@@ -37,8 +37,8 @@ export async function POST(req: Request) {
                     }
 
                     // officeparser is environment-agnostic and more stable in Vercel
-                    const data = await officeparser.parseUint8Array(buffer);
-                    content = data || "";
+                    const ast = await officeparser.parseOffice(buffer);
+                    content = ast.toText();
 
                     if (!content || content.trim().length === 0) {
                         return new NextResponse("No text content found in PDF. It might be an image-only document.", { status: 422 });
