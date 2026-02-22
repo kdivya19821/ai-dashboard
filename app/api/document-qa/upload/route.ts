@@ -37,7 +37,16 @@ export async function POST(req: Request) {
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
             try {
-                // Some environments require this specific import for ESM/CJS compatibility
+                // DOMMatrix Polyfill for Node.js (needed by some pdf-parse builds)
+                if (typeof (global as any).DOMMatrix === "undefined") {
+                    (global as any).DOMMatrix = class DOMMatrix {
+                        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+                        constructor(arg?: any) {
+                            if (typeof arg === 'string') { /* parse string if needed */ }
+                        }
+                    };
+                }
+
                 const pdf = require("pdf-parse");
                 // Check if the first 4 bytes are %PDF- to verify it's a valid PDF
                 const header = buffer.toString("utf-8", 0, 5);

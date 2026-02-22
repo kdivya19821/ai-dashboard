@@ -28,6 +28,14 @@ export async function POST(req: Request) {
 
             if (file.type === "application/pdf" || name.toLowerCase().endsWith(".pdf")) {
                 try {
+                    // DOMMatrix Polyfill for Node.js
+                    if (typeof (global as any).DOMMatrix === "undefined") {
+                        (global as any).DOMMatrix = class DOMMatrix {
+                            a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+                            constructor(arg?: any) { }
+                        };
+                    }
+
                     const pdf = require("pdf-parse");
                     // Check PDF header
                     const header = buffer.toString("utf-8", 0, 5);
