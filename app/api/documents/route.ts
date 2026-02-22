@@ -5,6 +5,17 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
+// Fallback polyfills for pdf-parse/pdf.js compatibility in Node.js
+if (typeof (global as any).DOMMatrix === "undefined") {
+    (global as any).DOMMatrix = class DOMMatrix {
+        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+        constructor() { }
+    };
+}
+if (typeof (global as any).self === "undefined") {
+    (global as any).self = global;
+}
+
 export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
@@ -28,17 +39,6 @@ export async function POST(req: Request) {
 
             if (file.type === "application/pdf" || name.toLowerCase().endsWith(".pdf")) {
                 try {
-                    // Global polyfills for Node.js compatibility
-                    if (typeof (global as any).DOMMatrix === "undefined") {
-                        (global as any).DOMMatrix = class DOMMatrix {
-                            a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-                            constructor() { }
-                        };
-                    }
-                    if (typeof (global as any).self === "undefined") {
-                        (global as any).self = global;
-                    }
-
                     const pdf = require("pdf-parse");
                     // Check PDF header
                     const header = buffer.toString("utf-8", 0, 5);
@@ -46,7 +46,8 @@ export async function POST(req: Request) {
                         return new NextResponse("Invalid PDF format: Missing PDF header.", { status: 422 });
                     }
 
-                    const data = await pdf(buffer).catch((e: any) => {
+                    // Pass a dummy pagerender function to skip problematic rendering code
+                    const data = await pdf(buffer, { pagerender: () => "" }).catch((e: any) => {
                         throw new Error(`Extraction failed: ${e.message || e}`);
                     });
 

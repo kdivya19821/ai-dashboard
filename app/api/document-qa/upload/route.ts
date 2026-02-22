@@ -6,6 +6,17 @@ export const dynamic = "force-dynamic";
 // Increase body size limit for file uploads (default is 1MB in Next.js)
 export const maxDuration = 30;
 
+// Fallback polyfills for pdf-parse/pdf.js compatibility in Node.js
+if (typeof (global as any).DOMMatrix === "undefined") {
+    (global as any).DOMMatrix = class DOMMatrix {
+        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+        constructor() { }
+    };
+}
+if (typeof (global as any).self === "undefined") {
+    (global as any).self = global;
+}
+
 export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
@@ -37,17 +48,6 @@ export async function POST(req: Request) {
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
             try {
-                // More robust polyfills for pdf-parse/pdf.js in Node environment
-                if (typeof (global as any).DOMMatrix === "undefined") {
-                    (global as any).DOMMatrix = class DOMMatrix {
-                        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-                        constructor() { }
-                    };
-                }
-                if (typeof (global as any).self === "undefined") {
-                    (global as any).self = global;
-                }
-
                 const pdf = require("pdf-parse");
 
                 // Verify it's a valid PDF first
@@ -59,7 +59,8 @@ export async function POST(req: Request) {
                     );
                 }
 
-                const data = await pdf(buffer).catch((e: any) => {
+                // Pass a dummy pagerender function to skip problematic rendering code
+                const data = await pdf(buffer, { pagerender: () => "" }).catch((e: any) => {
                     throw new Error(`Library failed: ${e.message || e}`);
                 });
 
