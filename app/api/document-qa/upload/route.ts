@@ -6,16 +6,6 @@ export const dynamic = "force-dynamic";
 // Increase body size limit for file uploads (default is 1MB in Next.js)
 export const maxDuration = 30;
 
-// Fallback polyfills for pdf-parse/pdf.js compatibility in Node.js
-if (typeof (global as any).DOMMatrix === "undefined") {
-    (global as any).DOMMatrix = class DOMMatrix {
-        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-        constructor() { }
-    };
-}
-if (typeof (global as any).self === "undefined") {
-    (global as any).self = global;
-}
 
 export async function POST(req: Request) {
     const session = await auth();
@@ -48,7 +38,7 @@ export async function POST(req: Request) {
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
             try {
-                const pdf = require("pdf-parse");
+                const officeparser = require("officeparser");
 
                 // Verify it's a valid PDF first
                 const header = buffer.toString("utf-8", 0, 5);
@@ -59,12 +49,9 @@ export async function POST(req: Request) {
                     );
                 }
 
-                // Pass a dummy pagerender function to skip problematic rendering code
-                const data = await pdf(buffer, { pagerender: () => "" }).catch((e: any) => {
-                    throw new Error(`Library failed: ${e.message || e}`);
-                });
-
-                content = data?.text || "";
+                // officeparser is environment-agnostic and more stable in Vercel
+                const data = await officeparser.parseUint8Array(buffer);
+                content = data || "";
 
                 if (!content || content.trim().length === 0) {
                     return NextResponse.json(

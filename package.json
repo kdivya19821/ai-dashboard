@@ -19,6 +19,7 @@
     "lucide-react": "latest",
     "next": "latest",
     "next-auth": "beta",
+    "officeparser": "^6.0.4",
     "openai": "^6.22.0",
     "pdf-parse": "latest",
     "react": "latest",
