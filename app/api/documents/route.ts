@@ -29,15 +29,21 @@ export async function POST(req: Request) {
             if (file.type === "application/pdf" || name.toLowerCase().endsWith(".pdf")) {
                 try {
                     const pdf = require("pdf-parse");
+                    // Check PDF header
+                    const header = buffer.toString("utf-8", 0, 5);
+                    if (!header.startsWith("%PDF-")) {
+                        return new NextResponse("Invalid PDF format: Missing PDF header.", { status: 422 });
+                    }
+
                     const data = await pdf(buffer);
                     content = data.text;
 
                     if (!content || content.trim().length === 0) {
                         return new NextResponse("No text content found in PDF. It might be an image-only document.", { status: 422 });
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error("PDF Extraction Error:", err);
-                    return new NextResponse("Failed to extract text from PDF.", { status: 422 });
+                    return new NextResponse(`PDF Extraction Error: ${err?.message || "Internal failure"}`, { status: 422 });
                 }
             } else {
                 content = buffer.toString();

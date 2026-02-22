@@ -37,7 +37,17 @@ export async function POST(req: Request) {
         let content = "";
         if (file.type === "application/pdf" || filename.endsWith(".pdf")) {
             try {
+                // Some environments require this specific import for ESM/CJS compatibility
                 const pdf = require("pdf-parse");
+                // Check if the first 4 bytes are %PDF- to verify it's a valid PDF
+                const header = buffer.toString("utf-8", 0, 5);
+                if (!header.startsWith("%PDF-")) {
+                    return NextResponse.json(
+                        { error: "Invalid PDF format. The file header is missing." },
+                        { status: 422 }
+                    );
+                }
+
                 const data = await pdf(buffer);
                 content = data.text;
 
@@ -48,9 +58,10 @@ export async function POST(req: Request) {
                     );
                 }
             } catch (pdfError: any) {
-                console.error("PDF parse error:", pdfError);
+                console.error("DEBUG PDF ERROR:", pdfError);
+                const errorMessage = pdfError?.message || "Unknown PDF parsing error";
                 return NextResponse.json(
-                    { error: "Failed to extract text from PDF. The file might be corrupted, encrypted, or password-protected." },
+                    { error: `PDF Error: ${errorMessage}. The file might be encrypted, password-protected, or use an unsupported version.` },
                     { status: 422 }
                 );
             }
