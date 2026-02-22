@@ -10,15 +10,34 @@ export async function POST(request: Request) {
         baseURL: "https://api.groq.com/openai/v1",
     });
     try {
-        const { videoUrl } = await request.json();
+        const { videoUrl, transcript: providedTranscript } = await request.json();
 
-        if (!videoUrl) {
-            return new NextResponse("Missing Video URL", { status: 400 });
+        if (!videoUrl && !providedTranscript) {
+            return new NextResponse("Missing Video URL or Transcript", { status: 400 });
         }
 
-        // 1. Extract transcript
-        const transcriptItems = await YoutubeTranscript.fetchTranscript(videoUrl);
-        const transcript = transcriptItems.map(item => item.text).join(" ");
+        // 1. Get transcript (either provided or fetched)
+        let transcript = providedTranscript || "";
+
+        if (!transcript && videoUrl) {
+            try {
+                const transcriptItems = await YoutubeTranscript.fetchTranscript(videoUrl);
+                transcript = transcriptItems.map(item => item.text).join(" ");
+            } catch (err: any) {
+                console.error("Transcript fetch error:", err);
+                return NextResponse.json({
+                    error: "TRANSCRIPT_DISABLED",
+                    message: "Transcripts are disabled or unavailable for this video. You can try manual pasting below."
+                });
+            }
+        }
+
+        if (!transcript) {
+            return NextResponse.json({
+                error: "TRANSCRIPT_EMPTY",
+                message: "No transcript content found for this video."
+            });
+        }
 
         // 2. Summarize with Groq
         const completion = await groq.chat.completions.create({
@@ -40,7 +59,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             summary: result.summary || "Could not generate summary.",
-            notes: result.notes || []
+            notes: result.notes || [],
+            transcript: transcript
         });
     } catch (error: any) {
         console.error("YouTube Tool Error:", error);
