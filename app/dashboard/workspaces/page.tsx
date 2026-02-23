@@ -20,15 +20,27 @@ export default function WorkspacesPage() {
 
     const createWorkspace = async () => {
         if (!name.trim()) return;
-        const res = await fetch("/api/workspaces", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name }),
-        });
-        const data = await res.json();
-        setWorkspaces([...workspaces, data]);
-        setActiveWorkspace(data);
-        setName("");
+        try {
+            const res = await fetch("/api/workspaces", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ error: "Failed to create workspace" }));
+                alert(errorData.error || "Something went default wrong");
+                return;
+            }
+
+            const data = await res.json();
+            setWorkspaces([...workspaces, data]);
+            setActiveWorkspace(data);
+            setName("");
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred while creating the workspace");
+        }
     };
 
     const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>, wsId: string) => {

@@ -23,6 +23,11 @@ export async function POST(req: Request) {
 
         if (!workspace) return new NextResponse("Workspace not found", { status: 404 });
 
+        const userId = (session.user as any).id;
+        if (workspace.ownerId !== userId) {
+            return new NextResponse("Unauthorized to access this workspace", { status: 401 });
+        }
+
         // 1. Combine doc content as context 
         const contexts = workspace.documents
             .filter(doc => doc.content)

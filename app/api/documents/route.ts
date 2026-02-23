@@ -19,6 +19,17 @@ export async function POST(req: Request) {
 
         if (!workspaceId) return new NextResponse("Missing workspaceId", { status: 400 });
 
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId }
+        });
+
+        if (!workspace) return new NextResponse("Workspace not found", { status: 404 });
+
+        const userId = (session.user as any).id;
+        if (workspace.ownerId !== userId) {
+            return new NextResponse("Unauthorized to upload to this workspace", { status: 401 });
+        }
+
         let name = "";
         let content = "";
 
