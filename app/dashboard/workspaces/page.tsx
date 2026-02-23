@@ -12,10 +12,21 @@ export default function WorkspacesPage() {
     const [isUploading, setIsUploading] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch("/api/workspaces").then(res => res.json()).then(data => {
-            setWorkspaces(data);
-            if (data.length > 0 && !activeWorkspace) setActiveWorkspace(data[0]);
-        });
+        fetch("/api/workspaces")
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setWorkspaces(data);
+                    if (data.length > 0 && !activeWorkspace) setActiveWorkspace(data[0]);
+                } else {
+                    console.error("Workspaces API error:", data);
+                    setWorkspaces([]);
+                }
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                setWorkspaces([]);
+            });
     }, []);
 
     const createWorkspace = async () => {
