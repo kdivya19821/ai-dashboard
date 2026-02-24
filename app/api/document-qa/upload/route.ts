@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { pathToFileURL } from "url";
 
 export const dynamic = "force-dynamic";
 
@@ -49,8 +50,20 @@ export async function POST(req: Request) {
                     );
                 }
 
+                // Fix for Windows ESM issue in pdfjs-dist and general cross-platform worker loading
+                let workerSrc = "";
+                try {
+                    const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+                    workerSrc = pathToFileURL(workerPath).href;
+                } catch (e) {
+                    // Fallback to CDN if local resolve fails (common in some build environments)
+                    workerSrc = "https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs";
+                }
+
                 // officeparser is environment-agnostic and more stable in Vercel
-                const ast = await officeparser.parseOffice(buffer);
+                const ast = await officeparser.parseOffice(buffer, {
+                    pdfWorkerSrc: workerSrc
+                });
                 content = ast.toText();
 
                 if (!content || content.trim().length === 0) {

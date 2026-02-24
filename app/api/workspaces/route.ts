@@ -10,11 +10,22 @@ export async function POST(req: Request) {
 
     try {
         const { name } = await req.json();
-        const userId = (session.user as any).id;
+        const userEmail = session.user.email;
+        let userId = (session.user as any).id;
+
+        console.log("WORKSPACE_CREATE: Session User", { id: userId, email: userEmail });
+
+        if (!userId && userEmail) {
+            console.log("WORKSPACE_CREATE: Looking up user by email", userEmail);
+            const user = await prisma.user.findUnique({
+                where: { email: userEmail }
+            });
+            userId = user?.id;
+        }
 
         if (!userId) {
-            console.error("No user ID found in session during workspace creation");
-            return NextResponse.json({ error: "User identity missing" }, { status: 400 });
+            console.error("WORKSPACE_CREATE_ERROR: No user ID found in session or DB", { sessionUser: session.user });
+            return NextResponse.json({ error: "User identity missing. Please try logging out and in again." }, { status: 400 });
         }
 
         const workspace = await prisma.workspace.create({
@@ -35,8 +46,18 @@ export async function GET() {
     if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
 
     try {
-        const userId = (session.user as any).id;
+        const userEmail = session.user.email;
+        let userId = (session.user as any).id;
+
+        if (!userId && userEmail) {
+            const user = await prisma.user.findUnique({
+                where: { email: userEmail }
+            });
+            userId = user?.id;
+        }
+
         if (!userId) {
+            console.error("WORKSPACE_GET_ERROR: No user ID found in session or DB");
             return NextResponse.json({ error: "User identity missing" }, { status: 400 });
         }
 

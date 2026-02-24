@@ -1,9 +1,10 @@
 const officeparser = require("officeparser");
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 
 async function testPdf() {
-    const pdfPath = path.join(process.cwd(), "public", "uploads", "R Programming.pdf");
+    const pdfPath = path.join(process.cwd(), "DocumentQA", "uploads", "data_mining.pdf");
 
     if (!fs.existsSync(pdfPath)) {
         console.error("PDF file not found at:", pdfPath);
@@ -12,7 +13,15 @@ async function testPdf() {
 
     try {
         console.log("Attempting to parse:", pdfPath);
-        const data = await officeparser.parseUint8Array(fs.readFileSync(pdfPath));
+
+        // Fix for Windows ESM issue in pdfjs-dist
+        // const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+        // const workerUrl = pathToFileURL(workerPath).href;
+
+        const ast = await officeparser.parseOffice(fs.readFileSync(pdfPath), {
+            pdfWorkerSrc: "https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs"
+        });
+        const data = ast.toText();
         console.log("--- EXTRACTION SUCCESS ---");
         console.log("Length:", data.length);
         console.log("First 500 characters:");
