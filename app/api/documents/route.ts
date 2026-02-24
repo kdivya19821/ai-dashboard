@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import prisma from "@/lib/prismadb";
 import { NextResponse } from "next/server";
+import { pathToFileURL } from "url";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -47,8 +48,20 @@ export async function POST(req: Request) {
                         return new NextResponse("Invalid PDF format: Missing PDF header.", { status: 422 });
                     }
 
+                    // Fix for Windows ESM issue in pdfjs-dist and general cross-platform worker loading
+                    let workerSrc = "";
+                    try {
+                        const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+                        workerSrc = pathToFileURL(workerPath).href;
+                    } catch (e) {
+                        // Fallback to CDN if local resolve fails
+                        workerSrc = "https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs";
+                    }
+
                     // officeparser is environment-agnostic and more stable in Vercel
-                    const ast = await officeparser.parseOffice(buffer);
+                    const ast = await officeparser.parseOffice(buffer, {
+                        pdfWorkerSrc: workerSrc
+                    });
                     content = ast.toText();
 
                     if (!content || content.trim().length === 0) {
